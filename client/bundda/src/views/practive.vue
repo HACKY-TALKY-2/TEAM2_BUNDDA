@@ -54,3 +54,22 @@ methods: {
   <input v-model="Name" placeholder="이름을 입력하세요">
 
 </template>
+
+
+<template>
+  <div>
+    <button @click="click()">클릭</button>	
+    // 버튼 클릭 시 'click' 함수의 내용을 동작
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'App',
+  methods:{
+    click(){
+      alert("버튼을 클릭 했습니다.")
+    }
+  }
+}
+</script>
