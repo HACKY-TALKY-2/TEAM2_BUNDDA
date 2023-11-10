@@ -21,6 +21,7 @@ const router = createRouter({
       path: '/Clientinfo',
       name: "Clientinfo",
       component: () =>import('../views/Clientinfo.vue')
+
     }
   ]
 
