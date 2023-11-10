@@ -1,37 +1,105 @@
 
 <template>
   <div class="form-container">
-
-    <!-- @keyup.enter로 엔터 바로 확인 -->
-    <input type="search" @keyup.enter="doSearch" placeholder="닉네임을 입력하세요." v-model="searchText">
-    <button @click="doSearch">중복조회</button>
-
+    <div class="nickname-container">
+      <!-- @keyup.enter로 엔터 바로 확인 -->
+      <input type="search" @keyup.enter="doSearch" placeholder="닉네임을 입력하세요." v-model="searchText">
+      <button @click="doSearch" class="search-button">중복검사</button>
+    </div>
     <div class='gender-radio'>
-      <input type="radio" v-model="gender" value="남자">남자
-      <input type="radio" v-model="gender" value="여자">여자
+      <div class="radio-box">
+        <input type="radio" v-model="gender" value="male"><div class='gender-text'>남자</div>
+      </div>
+      <div class="radio-box">
+        <input type="radio" v-model="gender" value="female"><div class='gender-text'>여자</div>
+      </div>
     </div>
 
     <input type="text" @keyup="getPhoneMask(contact)" placeholder="전화번호를 입력하세요." v-model="contact" maxlength="13">
 
     <input type="number" v-model="age" min="15" max="100" placeholder="나이를 입력하세요.">
+    
 
-    <button @click="click()">확인</button>
+    <div class="file-input-container">
+      <label for="file-upload" class="custom-file-upload">
+        프로필 사진 선택
+      </label>
+      <input id="file-upload" type="file" accept="image/*" @change="fileChange">
+    </div>
+    <button @click="click()" class="confirm-button">확인</button>
   </div>
 </template>
 
 <script>
+//import { file } from '@babel/types';
+
 export default {
   data() {
     return {
+      websocket: null,
       searchText: '',
       gender: '',
       contact:null,
       age: null,
+      file: null,
     }
   },
   methods: {
+    async CheckName() {
+      const response = await fetch(
+        `https://a52a-222-106-187-35.ngrok-free.app/api/member/check?name=${this.searchText}`,
+        {
+          method: "GET",
+          mode: "cors",
+          headers:{
+              "ngrok-skip-browser-warning": "69420"
+          }
+        }
+      );
+      console.log(await response.json());
+    },
+    async PostInfo()  {
+      var data = new FormData();
+      data.append('age', this.age);
+      data.append('gender', this.gender);
+      data.append('name', this.searchText);
+      data.append('phoneNumber', this.contact);
+      data.append('thumbnail', this.file[0]);
+
+      const response = await fetch(
+      
+        "https://a52a-222-106-187-35.ngrok-free.app/api/member",
+        {
+            method: "POST",
+            mode: "cors",
+            body: data,
+            headers:{
+              "ngrok-skip-browser-warning": "69420"
+          }
+        }
+      )
+      const result = await response.json();
+      if(result.ok == true){
+        localStorage.setItem("me", result.message);
+        this.websocket = new WebSocket(
+          "ws://a52a-222-106-187-35.ngrok-free.app/api/ws/playground"
+        );
+        await this.websocket.addEventListener('open', (event) => {
+          console.log("WebSocket 연결", event);
+          this.websocket.send(`connect:${result.message}:-1`)
+        });
+      } else{
+        console.error('응답 오류:', response.status)
+      }
+  // connect websocket
+  // connect ok -> "/"
+  // connect:id:-1:-1
+  //javascript set loval storage
+},
+
     doSearch() {
       console.log(this.searchText)
+      this.CheckName();
     },
     checkEnter(evt) {
       console.log(evt.key)
@@ -88,20 +156,64 @@ export default {
       return res
     },
 
+    fileChange: function(e){
+      const file = e.target.files;
+      let validation = true;
+      let message = '';
+
+      // if (file.length > 1){
+      //   validation = false;
+      //   message = `${message}, 사진은 한개만 등록 가능합니다.`
+      // }
+      if (file[0].type.indexOf('image') < 0){
+        validation = false;
+        message = `${message}, 이미지 파일만 업로드 가능합니다.`;
+      }
+      if(validation){
+        this.file = file
+      }
+      else{
+        this.file = '';
+        alert(message);
+      }
+    },
+
     click(){
+      if(this.searchText == ''){
+        alert(`닉네임을 입력하세요.`)
+        return;
+      }
+      if(this.gender == ''){
+        alert(`성별을 선택해 주세요.`)
+        return;
+      }
+      if(this.contact == null){
+        alert(`전화번호를 입력해 주세요.`)
+        return;
+      }
+      if(this.age == null){
+        alert(`나이를 입력해 주세요.`)
+        return;
+      }
+
       if(confirm(`닉네임 ${this.searchText}, 성별 ${this.gender}, 전화번호 ${this.contact}, 나이 ${this.age}이(가) 맞습니까?`)){
-        //데이터 전송?
+        this.PostInfo();
       }
       else{
         return;
       }
-    }
+    },
   }
 }
 </script>
 
 
 <style scoped>
+.radio-box {
+  display: flex;
+  align-items: center;
+}
+
 .form-container {
   max-width: 400px;
   margin: 0 auto;
@@ -112,25 +224,75 @@ export default {
   text-align: center;
 }
 
+.nickname-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
 input {
   margin: 10px 0;
   padding: 8px;
   width: 100%;
   box-sizing: border-box;
+  border-radius: 7px;
 }
 
-button {
-  padding: 10px;
-  background-color: #4CAF50;
+.search-button{
+  padding: 10px 20px;
+  background-color: slateblue;
   color: #fff;
-  border: none;
-  border-radius: 4px;
   cursor: pointer;
+  border-radius: 15px;
+  font-size: 13px;
+  border: none;
+}
+.confirm-button {
+  padding: 12px;
+  background-color: slateblue;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 15px;
+  font-size: 15px;
+  border: none;
+  margin: 13px 0;
 }
 
 .gender-radio {
   display: flex;
   justify-content: space-between;
   margin: 10px 0;
+  width: 50%;
 }
+[type="radio"] {
+  vertical-align: middle;
+  border: max(2px, 0.1em) solid gray;
+  border-radius: 50%;
+  width: 1.25em;
+  height: 1.25em;
+}
+.gender-text{
+  padding: 10px;
+}
+
+.file-input-container {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  border: none;
+
+}
+
+.custom-file-upload {
+  cursor: pointer;
+  padding: 3px 10px;
+  background-color: slateblue;
+  color: #fff;
+  border-radius: 15px;
+  display: inline-block;
+}
+
+
+
 </style>
