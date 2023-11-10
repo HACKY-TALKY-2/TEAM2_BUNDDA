@@ -1,5 +1,6 @@
 
 <template>
+  <body>
   <div class="form-container">
     <div class="nickname-container">
       <!-- @keyup.enter로 엔터 바로 확인 -->
@@ -28,10 +29,10 @@
     </div>
     <button @click="click()" class="confirm-button">확인</button>
   </div>
+</body>
 </template>
 
 <script>
-//import { file } from '@babel/types';
 
 export default {
   data() {
@@ -42,6 +43,7 @@ export default {
       contact:null,
       age: null,
       file: null,
+      state: false,
     }
   },
   methods: {
@@ -56,6 +58,15 @@ export default {
           }
         }
       );
+      const result = await response.json();
+      if(result.ok === true){
+        alert(`사용 가능합니다!`)
+        this.state=true
+      }
+      else if(result.ok === false){
+        alert(`중복 되었습니다.`)
+        this.searchText = ''
+      }
       console.log(await response.json());
     },
     async PostInfo()  {
@@ -88,13 +99,10 @@ export default {
           console.log("WebSocket 연결", event);
           this.websocket.send(`connect:${result.message}:-1`)
         });
+        window.location.href = '/juneon1';
       } else{
         console.error('응답 오류:', response.status)
       }
-  // connect websocket
-  // connect ok -> "/"
-  // connect:id:-1:-1
-  //javascript set loval storage
 },
 
     doSearch() {
@@ -105,7 +113,6 @@ export default {
       console.log(evt.key)
       // key가 enter면 doSearch 실행
       if (evt.key === 'Enter') {
-        // method도 this 사용
         this.doSearch()
       }
     },
@@ -161,10 +168,6 @@ export default {
       let validation = true;
       let message = '';
 
-      // if (file.length > 1){
-      //   validation = false;
-      //   message = `${message}, 사진은 한개만 등록 가능합니다.`
-      // }
       if (file[0].type.indexOf('image') < 0){
         validation = false;
         message = `${message}, 이미지 파일만 업로드 가능합니다.`;
@@ -195,6 +198,10 @@ export default {
         alert(`나이를 입력해 주세요.`)
         return;
       }
+      if(this.state == false){
+        alert(`중복 검사를 해주세요.`)
+        return;
+      }
 
       if(confirm(`닉네임 ${this.searchText}, 성별 ${this.gender}, 전화번호 ${this.contact}, 나이 ${this.age}이(가) 맞습니까?`)){
         this.PostInfo();
@@ -209,6 +216,14 @@ export default {
 
 
 <style scoped>
+
+body {
+  background-image: url('.\background.jpg'); 
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
 .radio-box {
   display: flex;
   align-items: center;
