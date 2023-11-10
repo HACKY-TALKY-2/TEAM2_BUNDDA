@@ -1,7 +1,7 @@
-package com.hack.bundda.playground.handler;
+package com.hack.bundda.chat.handler;
 
+import com.hack.bundda.chat.ChatService;
 import com.hack.bundda.member.MemberService;
-import com.hack.bundda.playground.PlaygroundService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.common.util.impl.LoggerFactory;
@@ -18,12 +18,11 @@ import java.util.List;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class PlaygroundHandler extends TextWebSocketHandler {
+public class ChatHandler extends TextWebSocketHandler {
     private static List<WebSocketSession> list = new ArrayList<>();
+    private Logger logger = LoggerFactory.logger(ChatHandler.class);
     private final MemberService memberService;
-    private final PlaygroundService playgroundService;
-    private Logger logger = LoggerFactory.logger(PlaygroundHandler.class);
-
+    private final ChatService chatService;
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String payload = message.getPayload();
@@ -32,44 +31,37 @@ public class PlaygroundHandler extends TextWebSocketHandler {
         String cmd = split[0]; // connect, close, request, agree, reject
         String currentUserId = split[1];
         String targetUserId = split[2];
-        // ws://domain/api/ws/playground connect:1:-1
-        // ws://domain/api/ws/playground request:1:2
-        // ws://domain/api/ws/playground agree:1:2
+        String content = split[3];
+
+        // ws://domain/api/ws/chat -> connect websocket -> sessionId
+        // connect:1:-1:-1
+        // send:1:2:안녕하세요
         switch (cmd) {
             case "connect":
-                memberService.updateSessionId(currentUserId, session.getId());
+                memberService.updateChatRoom(currentUserId, session.getId());
                 break;
             case "close":
-                memberService.deleteMember(currentUserId);
+                memberService.closeChatRoom(currentUserId);
                 break;
-            case "request": // 대화 요청
-                playgroundService.request(currentUserId, targetUserId, list);
-                break;
-            case "agree": // 대화 수락
-                playgroundService.agree(currentUserId, targetUserId, list);
-                break;
-            case "reject": // 대화 거절
+            case "send": // 대화 요청
+                chatService.sendMessage(targetUserId, content, list);
                 break;
         }
-//        TextMessage textMessage = new TextMessage(session.getId());
-//        session.sendMessage(textMessage);
-//        for (WebSocketSession sess : list) {
-//            logger.info("Seesion Id : " + sess.getId());
-//            sess.sendMessage(textMessage);
-//        }
+
     }
 
     /* Client가 접속 시 호출되는 메서드 */
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         list.add(session);
-        logger.info(session + " PlayGround 클라이언트 접속");
+        session.sendMessage(new TextMessage(session.getId()));
+        logger.info(session + " Chat 클라이언트 접속");
     }
 
     /* Client가 접속 해제 시 호출되는 메서드드 */
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        logger.info(session + " PlayGround 클라이언트 접속 해제");
+        logger.info(session + " Chat 클라이언트 접속 해제");
         list.remove(session);
     }
 }

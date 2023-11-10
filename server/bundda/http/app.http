@@ -1,1 +1,11 @@
 GET localhost:8080/api/
+
+### POST
+POST localhost:8080/api/member
+{
+name
+phoneNumber
+gender
+age
+    thumbnail
+}
