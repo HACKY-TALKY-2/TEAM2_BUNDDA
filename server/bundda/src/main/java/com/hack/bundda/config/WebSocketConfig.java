@@ -1,5 +1,6 @@
 package com.hack.bundda.config;
 
+import com.hack.bundda.chat.handler.ChatHandler;
 import com.hack.bundda.playground.handler.PlaygroundHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +12,7 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @RequiredArgsConstructor
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
-    private final PlaygroundHandler chatHandler;
+    private final ChatHandler chatHandler;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {

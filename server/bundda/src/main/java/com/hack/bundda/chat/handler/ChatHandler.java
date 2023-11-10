@@ -32,7 +32,10 @@ public class ChatHandler extends TextWebSocketHandler {
         String currentUserId = split[1];
         String targetUserId = split[2];
         String content = split[3];
-
+        logger.info("cmd: " + cmd);
+        logger.info("currentUserId: " + currentUserId);
+        logger.info("targetUserId: " + targetUserId);
+        logger.info("content: " + content);
         // ws://domain/api/ws/chat -> connect websocket -> sessionId
         // connect:1:-1:-1
         // send:1:2:안녕하세요
