@@ -21,8 +21,14 @@ const router = createRouter({
       path: '/juneon1',
       name: 'juneon1',
       component: () => import('../views/juneon1.vue')
+    },
+    {
+      path: '/Clientinfo',
+      name: "Clientinfo",
+      component: () =>import('../views/Clientinfo.vue')
     }
   ]
+
 })
 
 export default router
