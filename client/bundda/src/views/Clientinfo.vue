@@ -56,6 +56,14 @@ export default {
           }
         }
       );
+      const result = await response.json();
+      if(result.ok === true){
+        alert(`사용 가능합니다!`)
+      }
+      else if(result.ok === false){
+        alert(`중복 되었습니다.`)
+        this.searchText = ''
+      }
       console.log(await response.json());
     },
     async PostInfo()  {
@@ -88,6 +96,7 @@ export default {
           console.log("WebSocket 연결", event);
           this.websocket.send(`connect:${result.message}:-1`)
         });
+        window.location.href = '/juneon1';
       } else{
         console.error('응답 오류:', response.status)
       }
