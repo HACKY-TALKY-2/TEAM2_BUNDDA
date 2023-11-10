@@ -72,8 +72,10 @@ public class MemberService {
     }
 
     public void updateChatRoom(String id, String sessionId){
+        log.info("seesionId" + sessionId);
         Member member = memberRepository.findById(Long.valueOf(id)).orElseThrow();
-        member.setSessionId(sessionId);
+        log.info(member.getName());
+        member.setChatRoom(sessionId);
         memberRepository.save(member);
     }
 

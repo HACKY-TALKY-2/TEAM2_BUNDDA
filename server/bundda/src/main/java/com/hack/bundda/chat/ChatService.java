@@ -15,7 +15,7 @@ public class ChatService {
     private final MemberRepository memberRepository;
     public void sendMessage(String targetUserId, String content, List<WebSocketSession> list) {
         Member member = memberRepository.findById(Long.valueOf(targetUserId)).orElseThrow();
-        String sessionId = member.getSessionId();
+        String sessionId = member.getChatRoom();
         for(WebSocketSession session : list) {
             if(session.getId().equals(sessionId)) {
                 try {
